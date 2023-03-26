@@ -36,8 +36,7 @@ public class DatasetService {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toList());
-    var dataset = new Dataset(companies);
-    return databaseClient.save(dataset);
+    return databaseClient.saveDataset(companies);
   }
 
   private void validatePostDatasetRequest(String body) throws ValidationException {
