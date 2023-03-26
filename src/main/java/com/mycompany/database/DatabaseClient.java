@@ -1,15 +1,21 @@
 package com.mycompany.database;
 
+import static java.util.Collections.emptyList;
+
 import com.mycompany.financial_api.Company;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 
 public class DatabaseClient {
+  private final Jdbi jdbi = Jdbi.create("jdbc:sqlite:database.db");
+
   public int saveDataset(List<Company> companies) {
-    var jdbi = Jdbi.create("jdbc:sqlite:database.db");
     return jdbi.inTransaction(
         transaction -> {
           transaction.execute("create table if not exists dataset(timestamp)");
@@ -20,9 +26,7 @@ public class DatabaseClient {
                   .createUpdate("insert into dataset values(:timestamp)")
                   .bind("timestamp", Timestamp.from(Instant.now()))
                   .executeAndReturnGeneratedKeys()
-                  .map(
-                      (rs, ctx) ->
-                          new Dataset(rs.getInt("last_insert_rowid()"), Collections.emptyList()));
+                  .map((rs, ctx) -> new Dataset(rs.getInt("last_insert_rowid()"), emptyList()));
           var id = dataset.one().getId();
           var batch =
               transaction.prepareBatch(
@@ -31,5 +35,32 @@ public class DatabaseClient {
           int[] counts = batch.execute();
           return id;
         });
+  }
+
+  public Optional<Dataset> getDataset(int id) {
+    var query =
+        "select * "
+            + "from dataset "
+            + "join company on company.dataset_id = dataset.rowid "
+            + "where dataset.rowid = :id";
+    return jdbi.withHandle(
+        handle ->
+            handle
+                .createQuery(query)
+                .bind("id", id)
+                .registerRowMapper(BeanMapper.factory(Dataset.class))
+                .registerRowMapper(BeanMapper.factory(Company.class))
+                .reduceRows(
+                    Optional.empty(),
+                    (optionalDataset, rowView) -> {
+                      var company = rowView.getRow(Company.class);
+                      var companies =
+                          optionalDataset.map(Dataset::getCompanies).orElse(emptyList());
+                      return Optional.of(
+                          new Dataset(
+                              id,
+                              Stream.concat(companies.stream(), Stream.of(company))
+                                  .collect(Collectors.toList())));
+                    }));
   }
 }

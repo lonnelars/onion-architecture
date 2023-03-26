@@ -3,6 +3,7 @@ package com.mycompany.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.database.DatabaseClient;
+import com.mycompany.database.Dataset;
 import com.mycompany.financial_api.Company;
 import com.mycompany.financial_api.FinancialAPIClient;
 import java.util.List;
@@ -55,6 +56,10 @@ public class DatasetService {
     } catch (JsonProcessingException e) {
       throw new ValidationException("not valid", e);
     }
+  }
+
+  public Optional<Dataset> getDataset(int id) {
+    return databaseClient.getDataset(id);
   }
 
   public static class ValidationException extends Exception {
