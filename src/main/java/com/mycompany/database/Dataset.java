@@ -1,7 +1,7 @@
 package com.mycompany.database;
 
 import com.mycompany.financial_api.Company;
-import java.util.Collections;import java.util.List;
+import java.util.List;
 
 public class Dataset {
   private int id;

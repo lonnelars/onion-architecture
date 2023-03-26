@@ -20,11 +20,10 @@ public class DatasetService {
     financialAPIClient = new FinancialAPIClient();
   }
 
-  public int newDataset(String body)throws ValidationException {
-    validatePostDatasetRequest(body);
-    var symbols = financialAPIClient.symbols();
+  public int newDataset(String body) throws ValidationException {
+    var newDatasetBody = parsePostDatasetRequest(body);
     var companies =
-        symbols.stream()
+        newDatasetBody.getTickers().stream()
             .map(
                 symbol -> {
                   Optional<Company> opt = financialAPIClient.financialData(symbol);
@@ -39,12 +38,13 @@ public class DatasetService {
     return databaseClient.saveDataset(companies);
   }
 
-  private void validatePostDatasetRequest(String body) throws ValidationException {
+  private NewDatasetBody parsePostDatasetRequest(String body) throws ValidationException {
     try {
       var newDatasetBody = objectMapper.readValue(body, NewDatasetBody.class);
-      if (newDatasetBody.tickers.isEmpty()){
+      if (newDatasetBody.tickers.isEmpty()) {
         throw new ValidationException("tickers is empty");
       }
+      return newDatasetBody;
     } catch (JsonProcessingException e) {
       throw new ValidationException("not valid", e);
     }
