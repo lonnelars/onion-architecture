@@ -11,10 +11,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FinancialAPI {
+public class FinancialAPIClient {
     private final List<Company> companies;
 
-    public FinancialAPI() throws Exception {
+    public FinancialAPIClient() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         URI companyDatabase = Objects.requireNonNull(getClass().getClassLoader().getResource("obx.json")).toURI();
         String fileContents = Files.readString(Paths.get(companyDatabase));

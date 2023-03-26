@@ -5,8 +5,12 @@
 
 package com.mycompany.app;
 
+import spark.Spark;
+
+import static spark.Spark.get;
+
 public class App {
     public static void main(String[] args) {
-        System.out.println("Hello cloudspaces!");
+        get("/hello", (req, res) -> "Hello, world!");
     }
 }
