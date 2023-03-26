@@ -38,6 +38,7 @@ public class App {
             response.status(201);
             return "";
           } catch (DatasetService.ValidationException e) {
+            logger.atError().log("error: ", e);
             response.status(400);
             return e.getMessage();
           }

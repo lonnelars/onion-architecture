@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.database.DatabaseClient;
 import com.mycompany.financial_api.Company;
 import com.mycompany.financial_api.FinancialAPIClient;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -21,9 +22,15 @@ public class DatasetService {
   }
 
   public int newDataset(String body) throws ValidationException {
-    var newDatasetBody = parsePostDatasetRequest(body);
+    var newDataset = parsePostDatasetRequest(body);
+    List<String> symbols;
+    if (newDataset.getSymbols().stream().anyMatch(symbol -> symbol.equals(":all"))) {
+      symbols = financialAPIClient.symbols();
+    } else {
+      symbols = newDataset.getSymbols();
+    }
     var companies =
-        newDatasetBody.getTickers().stream()
+        symbols.stream()
             .map(
                 symbol -> {
                   Optional<Company> opt = financialAPIClient.financialData(symbol);
@@ -38,11 +45,11 @@ public class DatasetService {
     return databaseClient.saveDataset(companies);
   }
 
-  private NewDatasetBody parsePostDatasetRequest(String body) throws ValidationException {
+  private NewDataset parsePostDatasetRequest(String body) throws ValidationException {
     try {
-      var newDatasetBody = objectMapper.readValue(body, NewDatasetBody.class);
-      if (newDatasetBody.tickers.isEmpty()) {
-        throw new ValidationException("tickers is empty");
+      var newDatasetBody = objectMapper.readValue(body, NewDataset.class);
+      if (newDatasetBody.getSymbols().isEmpty()) {
+        throw new ValidationException("`symbols` is empty");
       }
       return newDatasetBody;
     } catch (JsonProcessingException e) {
