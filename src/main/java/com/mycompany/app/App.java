@@ -3,9 +3,10 @@ package com.mycompany.app;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mycompany.services.DatasetService;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,8 @@ public class App {
   private static final Logger logger = LoggerFactory.getLogger(App.class);
 
   private static final DatasetService datasetService;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final Gson gson;
+  private static String json;
 
   static {
     try {
@@ -22,6 +24,10 @@ public class App {
       logger.atError().log("could not create dependencies: {}", e);
       throw new RuntimeException(e);
     }
+
+    var gsonBuilder = new GsonBuilder();
+    gsonBuilder.registerTypeAdapter(Instant.class, new InstantTypeAdapter());
+    gson = gsonBuilder.create();
   }
 
   public static void main(String[] args) {
@@ -37,12 +43,10 @@ public class App {
           var id = Integer.parseInt(request.params("id"));
           var opt = datasetService.getDataset(id);
           return opt.map(
-                  value -> {
-                    try {
-                      return objectMapper.writeValueAsString(value);
-                    } catch (JsonProcessingException e) {
-                      throw new RuntimeException(e);
-                    }
+                  src -> {
+                    json = "application/json";
+                    response.type(json);
+                    return gson.toJson(src);
                   })
               .orElseGet(
                   () -> {

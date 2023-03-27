@@ -1,14 +1,17 @@
 package com.mycompany.database;
 
 import com.mycompany.financial_api.Company;
+import java.time.Instant;
 import java.util.List;
 
 public class Dataset {
   private int id;
+  private Instant timestamp;
   private List<Company> companies;
 
-  public Dataset(int id, List<Company> companies) {
+  public Dataset(int id, Instant timestamp, List<Company> companies) {
     this.id = id;
+    this.timestamp = timestamp;
     this.companies = companies;
   }
 
@@ -26,5 +29,13 @@ public class Dataset {
 
   public void setId(int id) {
     this.id = id;
+  }
+
+  public Instant getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(Instant timestamp) {
+    this.timestamp = timestamp;
   }
 }

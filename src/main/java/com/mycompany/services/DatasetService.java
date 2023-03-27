@@ -1,7 +1,7 @@
 package com.mycompany.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.mycompany.database.DatabaseClient;
 import com.mycompany.database.Dataset;
 import com.mycompany.financial_api.Company;
@@ -16,7 +16,7 @@ public class DatasetService {
   private final FinancialAPIClient financialAPIClient;
   private final Logger logger = LoggerFactory.getLogger(DatasetService.class);
   private final DatabaseClient databaseClient = new DatabaseClient();
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final Gson gson = new Gson();
 
   public DatasetService() throws Exception {
     financialAPIClient = new FinancialAPIClient();
@@ -48,12 +48,12 @@ public class DatasetService {
 
   private NewDataset parsePostDatasetRequest(String body) throws ValidationException {
     try {
-      var newDatasetBody = objectMapper.readValue(body, NewDataset.class);
+      var newDatasetBody = gson.fromJson(body, NewDataset.class);
       if (newDatasetBody.getSymbols().isEmpty()) {
         throw new ValidationException("`symbols` is empty");
       }
       return newDatasetBody;
-    } catch (JsonProcessingException e) {
+    } catch (JsonSyntaxException e) {
       throw new ValidationException("not valid", e);
     }
   }

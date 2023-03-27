@@ -13,20 +13,29 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 
 public class DatabaseClient {
-  private final Jdbi jdbi = Jdbi.create("jdbc:sqlite:database.db");
+  private final Jdbi jdbi;
+
+  public DatabaseClient() {
+    jdbi = Jdbi.create("jdbc:sqlite:database.db");
+    jdbi.useTransaction(
+        transaction -> {
+          transaction.execute("create table if not exists dataset(timestamp)");
+          transaction.execute(
+              "create table if not exists company (dataset_id references dataset(ROWID), symbol, companyName, marketCap, sector, industry, beta, price, lastAnnualDividend, volume, exchange, exchangeShortName, country, isEtf, isActivelyTrading, earningsPerShare, bookValuePerShare, salesPerShare)");
+        });
+  }
 
   public int saveDataset(List<Company> companies) {
     return jdbi.inTransaction(
         transaction -> {
-          transaction.execute("create table if not exists dataset(timestamp)");
-          transaction.execute(
-              "create table if not exists company (dataset_id references dataset(id), symbol, companyName, marketCap, sector, industry, beta, price, lastAnnualDividend, volume, exchange, exchangeShortName, country, isEtf, isActivelyTrading, earningsPerShare, bookValuePerShare, salesPerShare)");
+          var now = Instant.now();
           var dataset =
               transaction
                   .createUpdate("insert into dataset values(:timestamp)")
-                  .bind("timestamp", Timestamp.from(Instant.now()))
+                  .bind("timestamp", Timestamp.from(now))
                   .executeAndReturnGeneratedKeys()
-                  .map((rs, ctx) -> new Dataset(rs.getInt("last_insert_rowid()"), emptyList()));
+                  .map(
+                      (rs, ctx) -> new Dataset(rs.getInt("last_insert_rowid()"), now, emptyList()));
           var id = dataset.one().getId();
           var batch =
               transaction.prepareBatch(
@@ -59,6 +68,7 @@ public class DatabaseClient {
                       return Optional.of(
                           new Dataset(
                               id,
+                              rowView.getColumn("timestamp", Timestamp.class).toInstant(),
                               Stream.concat(companies.stream(), Stream.of(company))
                                   .collect(Collectors.toList())));
                     }));

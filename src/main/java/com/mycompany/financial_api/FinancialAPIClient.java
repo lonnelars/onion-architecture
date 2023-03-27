@@ -1,7 +1,6 @@
 package com.mycompany.financial_api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,11 +13,11 @@ public class FinancialAPIClient {
   private final List<Company> companies;
 
   public FinancialAPIClient() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
     URI companyDatabase =
         Objects.requireNonNull(getClass().getClassLoader().getResource("obx.json")).toURI();
     String fileContents = Files.readString(Paths.get(companyDatabase));
-    companies = objectMapper.readValue(fileContents, new TypeReference<>() {});
+    Gson gson = new Gson();
+    companies = List.of(gson.fromJson(fileContents, Company[].class));
   }
 
   public List<String> symbols() {
