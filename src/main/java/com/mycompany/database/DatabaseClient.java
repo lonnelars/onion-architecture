@@ -73,4 +73,9 @@ public class DatabaseClient {
                                   .collect(Collectors.toList())));
                     }));
   }
+
+  public List<Integer> getDatasetIds() {
+    var query = "select rowid from dataset";
+    return jdbi.withHandle(handle -> handle.createQuery(query).mapTo(Integer.class).list());
+  }
 }

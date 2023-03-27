@@ -15,7 +15,7 @@ public class App {
 
   private static final DatasetService datasetService;
   private static final Gson gson;
-  private static String json;
+  private static String json = "application/json";
 
   static {
     try {
@@ -44,7 +44,6 @@ public class App {
           var opt = datasetService.getDataset(id);
           return opt.map(
                   src -> {
-                    json = "application/json";
                     response.type(json);
                     return gson.toJson(src);
                   })
@@ -53,6 +52,13 @@ public class App {
                     response.status(404);
                     return "dataset with id " + id + " does not exist";
                   });
+        });
+    get(
+        "/datasets",
+        (request, response) -> {
+          var list = datasetService.getDatasetIds();
+          response.type(json);
+          return gson.toJson(list);
         });
     post(
         "/datasets",
