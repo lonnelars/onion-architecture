@@ -1,5 +1,7 @@
 package com.mycompany.services;
 
+import static java.util.Comparator.comparingDouble;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.mycompany.database.DatabaseClient;
@@ -64,6 +66,29 @@ public class DatasetService {
 
   public List<Integer> getDatasetIds() {
     return databaseClient.getDatasetIds();
+  }
+
+  public Optional<List<Company>> getRecommendation(String id) {
+    return parseDatasetId(id).flatMap(databaseClient::getDataset).map(this::top5Companies);
+  }
+
+  private List<Company> top5Companies(Dataset dataset) {
+    return dataset.getCompanies().stream()
+        .sorted(comparingDouble(DatasetService::priceToEarnings))
+        .limit(5)
+        .collect(Collectors.toList());
+  }
+
+  private static double priceToEarnings(Company company1) {
+    return company1.getPrice() / company1.getEarningsPerShare();
+  }
+
+  private Optional<Integer> parseDatasetId(String id) {
+    try {
+      return Optional.of(Integer.parseInt(id));
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
   }
 
   public static class ValidationException extends Exception {

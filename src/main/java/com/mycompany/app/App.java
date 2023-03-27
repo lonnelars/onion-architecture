@@ -5,8 +5,10 @@ import static spark.Spark.post;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mycompany.financial_api.Company;
 import com.mycompany.services.DatasetService;
 import java.time.Instant;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +76,23 @@ public class App {
             response.status(400);
             return e.getMessage();
           }
+        });
+    get(
+        "/recommendation",
+        (request, response) -> {
+          logger.atInfo().log("GET /recommendation");
+          var id = request.queryParams("dataset");
+          var companyListOpt = datasetService.getRecommendation(id);
+          return companyListOpt
+              .map(
+                  companyList ->
+                      companyList.stream().map(Company::getSymbol).collect(Collectors.toList()))
+              .map(
+                  companyList -> {
+                    response.type(json);
+                    return gson.toJson(companyList);
+                  })
+              .orElseGet(() -> "invalid dataset id: " + id);
         });
   }
 }
