@@ -17,7 +17,7 @@ public class App {
 
   private static final DatasetService datasetService;
   private static final Gson gson;
-  private static String json = "application/json";
+  private static final String json = "application/json";
 
   static {
     try {
