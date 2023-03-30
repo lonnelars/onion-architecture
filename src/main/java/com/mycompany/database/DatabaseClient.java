@@ -40,7 +40,7 @@ public class DatabaseClient {
           var batch =
               transaction.prepareBatch(
                   "insert into company values (:dataset_id, :symbol, :companyName, :marketCap, :sector, :industry, :beta, :price, :lastAnnualDividend, :volume, :exchange, :exchangeShortName, :country, :isEtf, :isActivelyTrading, :earningsPerShare, :bookValuePerShare, :salesPerShare)");
-          companies.forEach(bean -> batch.bind("dataset_id", id).bindBean(bean).add());
+          companies.forEach(company -> batch.bind("dataset_id", id).bindBean(company).add());
           int[] counts = batch.execute();
           return id;
         });

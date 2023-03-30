@@ -18,12 +18,13 @@ import org.slf4j.LoggerFactory;
 
 public class DatasetService {
   private final FinancialAPIClient financialAPIClient;
+  private final DatabaseClient databaseClient;
   private final Logger logger = LoggerFactory.getLogger(DatasetService.class);
-  private final DatabaseClient databaseClient = new DatabaseClient();
   private static final Gson gson = new Gson();
 
-  public DatasetService() throws Exception {
-    financialAPIClient = new FinancialAPIClient();
+  public DatasetService(FinancialAPIClient financialAPIClient, DatabaseClient databaseClient) {
+    this.financialAPIClient = financialAPIClient;
+    this.databaseClient = databaseClient;
   }
 
   public int newDataset(String body) throws ValidationException, IOException {

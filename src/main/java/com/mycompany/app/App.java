@@ -5,7 +5,9 @@ import static spark.Spark.post;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mycompany.database.DatabaseClient;
 import com.mycompany.financial_api.Company;
+import com.mycompany.financial_api.FinancialAPIClient;
 import com.mycompany.services.DatasetService;
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -19,9 +21,15 @@ public class App {
   private static final Gson gson;
   private static final String json = "application/json";
 
+  private static final FinancialAPIClient financialAPIClient;
+
+  private static final DatabaseClient databaseClient;
+
   static {
     try {
-      datasetService = new DatasetService();
+      financialAPIClient = new FinancialAPIClient();
+      databaseClient = new DatabaseClient();
+      datasetService = new DatasetService(financialAPIClient, databaseClient);
     } catch (Exception e) {
       logger.atError().log("could not create dependencies: {}", e);
       throw new RuntimeException(e);
