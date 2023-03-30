@@ -8,6 +8,7 @@ import com.mycompany.database.DatabaseClient;
 import com.mycompany.database.Dataset;
 import com.mycompany.financial_api.Company;
 import com.mycompany.financial_api.FinancialAPIClient;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ public class DatasetService {
     financialAPIClient = new FinancialAPIClient();
   }
 
-  public int newDataset(String body) throws ValidationException {
+  public int newDataset(String body) throws ValidationException, IOException {
     var newDataset = parsePostDatasetRequest(body);
     List<String> symbols;
     if (newDataset.getSymbols().stream().anyMatch(symbol -> symbol.equals(":all"))) {
@@ -51,6 +52,10 @@ public class DatasetService {
   private NewDataset parsePostDatasetRequest(String body) throws ValidationException {
     try {
       var newDatasetBody = gson.fromJson(body, NewDataset.class);
+      if (newDatasetBody == null) {
+        throw new ValidationException(
+            "Body of request is missing. To create a new dataset, I need a list of symbols or the special value `:all` in the `symbols` field.");
+      }
       if (newDatasetBody.getSymbols().isEmpty()) {
         throw new ValidationException("`symbols` is empty");
       }
