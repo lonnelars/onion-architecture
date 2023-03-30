@@ -4,6 +4,7 @@ import static java.util.Comparator.comparingDouble;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.mycompany.app.ValidationException;
 import com.mycompany.database.DatabaseClient;
 import com.mycompany.database.Dataset;
 import com.mycompany.financial_api.Company;
@@ -37,15 +38,25 @@ public class DatasetService {
         symbols.stream()
             .map(
                 symbol -> {
-                  Optional<Company> opt = financialAPIClient.financialData(symbol);
-                  if (opt.isEmpty()) {
-                    logger.atWarn().log("could not get financial data for {}", symbol);
+                  Optional<Company> opt;
+                  try {
+                    opt = financialAPIClient.financialData(symbol);
+                    if (opt.isEmpty()) {
+                      logger.atWarn().log("could not get financial data for {}", symbol);
+                    }
+                    return opt;
+                  } catch (IOException e) {
+                    logger.atError().log("communication error with financial api: ", e);
+                    throw new RuntimeException(e);
                   }
-                  return opt;
                 })
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toList());
+    if (companies.size() != symbols.size()) {
+      throw new IOException("could not get data for all requested companies");
+    }
+
     return databaseClient.saveDataset(companies);
   }
 
@@ -93,16 +104,6 @@ public class DatasetService {
       return Optional.of(Integer.parseInt(id));
     } catch (NumberFormatException e) {
       return Optional.empty();
-    }
-  }
-
-  public static class ValidationException extends Exception {
-    public ValidationException(String message, Throwable cause) {
-      super(message, cause);
-    }
-
-    public ValidationException(String message) {
-      super(message);
     }
   }
 }

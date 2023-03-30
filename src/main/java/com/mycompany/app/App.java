@@ -71,7 +71,7 @@ public class App {
             response.header("Location", "/datasets/" + id);
             response.status(201);
             return "";
-          } catch (DatasetService.ValidationException e) {
+          } catch (ValidationException e) {
             logger.atError().log("error: ", e);
             response.status(400);
             return e.getMessage();
