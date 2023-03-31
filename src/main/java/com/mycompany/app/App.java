@@ -1,8 +1,5 @@
 package com.mycompany.app;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mycompany.database.DatabaseClient;
@@ -12,7 +9,7 @@ import com.mycompany.services.DatasetService;
 import java.time.Instant;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.LoggerFactory;import static spark.Spark.*;
 
 public class App {
   private static final Logger logger = LoggerFactory.getLogger(App.class);
@@ -41,6 +38,10 @@ public class App {
   }
 
   public static void main(String[] args) {
+    var port = System.getenv("PORT");
+    if (port != null) {
+      port(Integer.parseInt(port));
+    }
     get(
         "/ping",
         (req, res) -> {
